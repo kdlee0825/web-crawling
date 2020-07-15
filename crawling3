@@ -1,0 +1,109 @@
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from bs4 import BeautifulSoup
+import time
+import pandas as pd
+import datetime
+import pymysql
+from sqlalchemy import create_engine
+import MySQLdb
+
+
+path = 'C:/Users/KD/Desktop/chromedriver_win32/chromedriver'
+driver = webdriver.Chrome(path)
+driver.execute_script('window.open("about:blank", "_blank");')
+driver.execute_script('window.open("about:blank", "_blank");')
+tabs = driver.window_handles
+driver.switch_to_window(tabs[0])
+driver.get('https://kr.investing.com/currencies/exchange-rates-table')
+driver.switch_to_window(tabs[1])
+driver.get('https://kr.investing.com/crypto/currencies')
+driver.switch_to_window(tabs[2])
+driver.get('https://kr.investing.com/commodities/real-time-futures')
+time.sleep(3)
+setnumber=0
+today=datetime.datetime.today().strftime('%Y-%m-%d')
+
+while True:
+    df=pd.DataFrame(index=[],columns=['date','time','btc','eth','usdt',
+                                      'xrp','bch','ada','bsv','ltc',
+                                      'bnb','link','cro','eos','xtz','xlm',
+                                      'xmr','trx','leo','usdc','vet','ht','usd_krw','eur_krw','gbp_krw',
+                                      'jpy_krw','chf_krw','cad_krw','gold','silver'])
+    setnumber= setnumber+1
+    if (datetime.datetime.today().strftime('%Y-%m-%d') == today) == False :
+        today = datetime.datetime.today().strftime('%Y-%m-%d')
+        setnumber = 1
+    count = 0
+    
+    while True:
+        driver.switch_to_window(tabs[1])
+        btc_price=    driver.find_element_by_xpath('//*[@id="fullColumn"]/div[9]/table/tbody/tr[1]/td[5]/a').text
+        eth_price=    driver.find_element_by_xpath('//*[@id="fullColumn"]/div[9]/table/tbody/tr[2]/td[5]/a').text
+        usdt_price=    driver.find_element_by_xpath('//*[@id="fullColumn"]/div[9]/table/tbody/tr[3]/td[5]/a').text
+        xrp_price= driver.find_element_by_xpath('//*[@id="fullColumn"]/div[9]/table/tbody/tr[4]/td[5]/a').text
+        bch_price=driver.find_element_by_xpath('//*[@id="fullColumn"]/div[9]/table/tbody/tr[5]/td[5]/a').text
+        ada_price=driver.find_element_by_xpath('//*[@id="fullColumn"]/div[9]/table/tbody/tr[6]/td[5]/a').text
+        bsv_price= driver.find_element_by_xpath('//*[@id="fullColumn"]/div[9]/table/tbody/tr[7]/td[5]/a').text
+        ltc_price=     driver.find_element_by_xpath('//*[@id="fullColumn"]/div[9]/table/tbody/tr[8]/td[5]/a').text
+        bnb_price=    driver.find_element_by_xpath('//*[@id="fullColumn"]/div[9]/table/tbody/tr[9]/td[5]/a').text
+        link_price=    driver.find_element_by_xpath('//*[@id="fullColumn"]/div[9]/table/tbody/tr[10]/td[5]/a').text
+        cro_price=   driver.find_element_by_xpath('//*[@id="fullColumn"]/div[9]/table/tbody/tr[11]/td[5]/a').text
+        eos_price=    driver.find_element_by_xpath('//*[@id="fullColumn"]/div[9]/table/tbody/tr[12]/td[5]/a').text
+        xtz_price=    driver.find_element_by_xpath('//*[@id="fullColumn"]/div[9]/table/tbody/tr[13]/td[5]/a').text
+        xlm_price=    driver.find_element_by_xpath('//*[@id="fullColumn"]/div[9]/table/tbody/tr[14]/td[5]/a').text
+        xmr_price=    driver.find_element_by_xpath('//*[@id="fullColumn"]/div[9]/table/tbody/tr[15]/td[5]/a').text
+        trx_price=    driver.find_element_by_xpath('//*[@id="fullColumn"]/div[9]/table/tbody/tr[16]/td[5]/a').text
+        leo_price=   driver.find_element_by_xpath('//*[@id="fullColumn"]/div[9]/table/tbody/tr[17]/td[5]/a').text
+        usdc_price=   driver.find_element_by_xpath('//*[@id="fullColumn"]/div[9]/table/tbody/tr[18]/td[5]/a').text
+        vet_price=   driver.find_element_by_xpath('//*[@id="fullColumn"]/div[9]/table/tbody/tr[19]/td[5]/a').text
+        ht_price=   driver.find_element_by_xpath('//*[@id="fullColumn"]/div[9]/table/tbody/tr[20]/td[5]/a').text
+        driver.switch_to_window(tabs[0])
+        usd_price=    driver.find_element_by_xpath('//*[@id="last_12_28"]').text
+        eur_price=    driver.find_element_by_xpath('//*[@id="last_17_28"]').text
+        gbp_price=    driver.find_element_by_xpath('//*[@id="last_3_28"]').text
+        jpy_price=    driver.find_element_by_xpath('//*[@id="last_3_28"]').text
+        chf_price=    driver.find_element_by_xpath('//*[@id="last_3_28"]').text
+        cad_price=    driver.find_element_by_xpath('//*[@id="last_15_28"]').text
+        driver.switch_to_window(tabs[2])
+        gold_price=   driver.find_element_by_xpath('//*[@id="cross_rate_1"]/tbody/tr[1]/td[4]').text
+        silver_price= driver.find_element_by_xpath('//*[@id="cross_rate_1"]/tbody/tr[3]/td[4]').text
+        
+        
+        coinlist = [btc_price,eth_price,usdt_price,xrp_price,bch_price,
+                    ada_price,bsv_price,ltc_price,bnb_price,link_price,
+                    cro_price,eos_price,xtz_price,xlm_price,xmr_price,trx_price,
+                    leo_price,usdc_price,vet_price,ht_price,
+                    usd_price,eur_price,gbp_price,jpy_price,chf_price,
+                    cad_price,gold_price,silver_price]
+
+        clist=[]
+        clist2=[]
+
+        dt=datetime.datetime.today()
+        dt1=dt.strftime('%Y-%m-%d')
+        dt2=dt.strftime('%H:%M:%S')
+
+        for i in coinlist:
+            changestr=i.replace(',','')
+            clist.append(changestr)
+
+        for j in clist:
+            changeint=float(j)
+            clist2.append(changeint)
+
+        data1={'date':dt1,'time':dt2}
+        df=df.append(data1,ignore_index=True)
+        for i in range(len(clist2)):
+            df.iloc[count,i+2]=clist2[i]
+        count=count+1
+        print(df)
+        time.sleep(5) 
+        if count == 720:
+            break
+        
+    engine = create_engine("mysql+mysqldb://root:"+"0825"+"@localhost/kddb", encoding='utf-8')
+    conn = engine.connect()
+    print(setnumber)
+
+    df.to_sql(name=f"{today}_data_{setnumber}", con=engine, if_exists='replace')
